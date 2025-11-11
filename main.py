@@ -26,9 +26,13 @@ async def on_member_join(member):
         await member.send(f"Welcome to the server {member.name}") # Sends a welcome message to the newly joined member.
     except discord.Forbidden:
         print(f"Couldn't DM {member.name}") # Avoids crashing if DMs are closed.
+    channel = discord.utils.get(member.guild.text_channels, name="welcome") # Looks for a channel named "general" in the server.
+    if channel:
+        await channel.send(f"Welcome to the server {member.name}")
+    else:
+        print("Channel not found")
 
 swear_words = ["shit", "bitch", "fuck", "asshole", "dick", "pussy"]
-
 @bot.event
 async def on_message(message):
     if message.author == bot.user: # Checks if the message was sent by the bot itself. To avoid infinite loop
@@ -111,20 +115,22 @@ async def kick(ctx, member: discord.Member, *, reason=None): # !kick command
 async def ban(ctx, member: discord.Member, *, reason=None): # !ban command
     await member.ban(reason=reason)
     await ctx.send(f"{member.name} has been banned from the server.")
-
+    
 @bot.command()
-@commands.has_permissions(ban_members=True)
-async def unban(ctx, *, member): # !unban command
-    banned_users = await ctx.guild.bans()
-    member_name, member_discriminator = member.split("#")
-
-    for ban_entry in banned_users:
-        user = ban_entry.user
-        if (user.name, user.discriminator) == (member_name, member_discriminator):
-            await ctx.guild.unban(user)
-            await ctx.send(f"Unbanned {user.mention}")
-            return
-    await ctx.send("User not found in ban list.")
+@commands.has_permissions(ban_members=True)  # Ensures the user has permission to ban/unban members
+async def unban(ctx, member: discord.User):  # !unban command that takes only a mentioned user (@User)
+    """Unbans a user by mentioning them (example: !unban @User)."""
+    banned_users = await ctx.guild.bans()  # Fetches the list of all banned users from the server
+    
+    for ban_entry in banned_users:  # Loops through each banned user entry
+        user = ban_entry.user  # Gets the user object from the ban entry
+        
+        if user.id == member.id:  # Compares the mentioned user ID with the banned user's ID
+            await ctx.guild.unban(user)  # Unbans the matched user from the server
+            await ctx.send(f"✅ Unbanned {user.mention}")  # Sends a success message mentioning the unbanned user
+            return  # Stops the function after successfully unbanning
+    
+    await ctx.send("❌ User not found in ban list.")  # Sends an error message if the mentioned user isn’t in the ban list
 
 @bot.command()
 async def avatar(ctx, member: discord.Member = None): # !avatar command
