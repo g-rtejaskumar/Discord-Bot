@@ -5,10 +5,8 @@ from dotenv import load_dotenv # Imports the load_dotenv function from the pytho
 import os # Imports the os module, which provides a way of using operating system dependent functionality, like accessing environment variables.
 from discord.ext.commands import DefaultHelpCommand # Imports the DefaultHelpCommand class from the discord.ext.commands module, which provides the default help command for the bot.
 
-load_dotenv() # Loads environment variables from a .env file into the script's environment.
-token = os.getenv('DISCORD_TOKEN') # Retrieves the bot's token from the environment variables, which is necessary for the bot to log in.
-
-handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w') # Configures a file handler for logging, directing logs to 'discord.log' in UTF-8 encoding, overwriting the file each time.
+load_dotenv() # Loads environment variables from a .env file into the script's environment. This is great for local development.
+token = os.getenv('DISCORD_TOKEN') # Retrieves the bot's token from the environment variables. On Render, we'll set this in the dashboard.
 intents = discord.Intents.default() # Creates a default set of Discord intents, which define what events the bot wants to receive from Discord.
 intents.message_content = True # Enables the message content intent, allowing the bot to read the content of messages. This is often required for command processing.
 intents.members = True # Enables the members intent, allowing the bot to receive information about guild members (e.g., when they join or leave).
@@ -330,4 +328,5 @@ class MyHelpCommand(commands.HelpCommand):  # Creates a custom help command clas
 bot.help_command = MyHelpCommand()  # Sets our custom help command for the bot
 bot.help_command.cog = None  # Ensures it works outside any specific cog
 
-bot.run(token, log_handler=handler, log_level=logging.DEBUG) # Runs the bot with the provided token, setting the log handler to 'handler' and the log level to 'DEBUG'.
+# To log to the console, which Render captures, we can pass log_handler=None or just omit it.
+bot.run(token, log_handler=None, log_level=logging.INFO) # Runs the bot with the provided token, setting the log level to 'INFO'.
